@@ -1,9 +1,16 @@
-numpy
-pandas
-matplotlib
-moviepy
-imageio-ffmpeg
-opencv-python
-python-dotenv
-tqdm
-requests
+# Core
+numpy>=2.0,<3.0
+pandas>=2.2,<3.0
+matplotlib>=3.8,<4.0
+
+# Video / audio processing
+moviepy==1.0.3
+imageio-ffmpeg>=0.5,<1.0
+opencv-python>=4.9,<5.0
+
+# Utils
+python-dotenv>=1.0,<2.0
+tqdm>=4.66,<5.0
+requests>=2.31,<3.0
+
+decorator<5
