@@ -1,0 +1,9 @@
+numpy
+pandas
+matplotlib
+moviepy
+imageio-ffmpeg
+opencv-python
+python-dotenv
+tqdm
+requests
