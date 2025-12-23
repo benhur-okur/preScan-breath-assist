@@ -12,8 +12,10 @@ contourpy==1.3.3
     # via matplotlib
 cycler==0.12.1
     # via matplotlib
-decorator==5.2.1
-    # via moviepy
+decorator==4.4.2
+    # via
+    #   -r requirements.in
+    #   moviepy
 fonttools==4.61.1
     # via matplotlib
 idna==3.11
@@ -28,7 +30,7 @@ kiwisolver==1.4.9
     # via matplotlib
 matplotlib==3.10.8
     # via -r requirements.in
-moviepy==2.2.1
+moviepy==1.0.3
     # via -r requirements.in
 numpy==2.2.6
     # via
@@ -45,11 +47,10 @@ packaging==25.0
     # via matplotlib
 pandas==2.3.3
     # via -r requirements.in
-pillow==11.3.0
+pillow==12.0.0
     # via
     #   imageio
     #   matplotlib
-    #   moviepy
 proglog==0.1.12
     # via moviepy
 pyparsing==3.3.1
@@ -59,18 +60,19 @@ python-dateutil==2.9.0.post0
     #   matplotlib
     #   pandas
 python-dotenv==1.2.1
-    # via
-    #   -r requirements.in
-    #   moviepy
+    # via -r requirements.in
 pytz==2025.2
     # via pandas
 requests==2.32.5
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   moviepy
 six==1.17.0
     # via python-dateutil
 tqdm==4.67.1
     # via
     #   -r requirements.in
+    #   moviepy
     #   proglog
 tzdata==2025.3
     # via pandas
