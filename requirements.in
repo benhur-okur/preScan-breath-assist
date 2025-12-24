@@ -14,3 +14,6 @@ tqdm>=4.66,<5.0
 requests>=2.31,<3.0
 
 decorator<5
+
+# Training / ML (Part 2)
+scikit-learn>=1.4,<2.0

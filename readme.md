@@ -129,3 +129,7 @@ label (0/1)
 fps, window/stride metadata
 
 video duration / total frames (frame taşması riskini azaltmak için)
+```
+
+### PyThorch 
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128

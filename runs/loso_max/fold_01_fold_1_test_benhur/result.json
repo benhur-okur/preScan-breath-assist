@@ -1,0 +1,20 @@
+{
+  "fold_idx": 1,
+  "fold_key": "fold_1_test_benhur",
+  "pooling": "max",
+  "best_val_f1": 0.3783783783783784,
+  "test_f1": 0.6052631578947368,
+  "test_confusion": [
+    [
+      113,
+      40
+    ],
+    [
+      20,
+      46
+    ]
+  ],
+  "test_n": 219,
+  "pos_weight": 2.77602523659306,
+  "report": "              precision    recall  f1-score   support\n\n           0     0.8496    0.7386    0.7902       153\n           1     0.5349    0.6970    0.6053        66\n\n    accuracy                         0.7260       219\n   macro avg     0.6923    0.7178    0.6977       219\nweighted avg     0.7548    0.7260    0.7345       219\n"
+}

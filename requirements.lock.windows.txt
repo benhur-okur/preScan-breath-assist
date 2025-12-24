@@ -28,6 +28,8 @@ imageio-ffmpeg==0.6.0
     # via
     #   -r requirements.in
     #   moviepy
+joblib==1.5.3
+    # via scikit-learn
 kiwisolver==1.4.9
     # via matplotlib
 matplotlib==3.10.8
@@ -43,6 +45,8 @@ numpy==2.2.6
     #   moviepy
     #   opencv-python
     #   pandas
+    #   scikit-learn
+    #   scipy
 opencv-python==4.12.0.88
     # via -r requirements.in
 packaging==25.0
@@ -69,8 +73,14 @@ requests==2.32.5
     # via
     #   -r requirements.in
     #   moviepy
+scikit-learn==1.7.2
+    # via -r requirements.in
+scipy==1.15.3
+    # via scikit-learn
 six==1.17.0
     # via python-dateutil
+threadpoolctl==3.6.0
+    # via scikit-learn
 tqdm==4.67.1
     # via
     #   -r requirements.in
