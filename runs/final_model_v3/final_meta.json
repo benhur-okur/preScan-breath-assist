@@ -1,0 +1,26 @@
+{
+  "config": {
+    "manifest_csv": "data\\windows\\manifest_final_train_v3.csv",
+    "input_mode": "diff",
+    "pooling": "max",
+    "epochs": 15,
+    "batch_size": 16,
+    "lr": 0.0003,
+    "weight_decay": 0.0001,
+    "img_size": 224,
+    "num_workers": 2,
+    "seed": 42,
+    "device": "cuda",
+    "out_dir": "runs\\final_model_v3",
+    "fold_id": "final"
+  },
+  "pos_weight": 2.607142857142857,
+  "has_val": true,
+  "best_val_f1_at_0.5": 0.4050632911392405,
+  "guarded_threshold_from_final_val": 0.9000000000000002,
+  "guarded_threshold_val_f1": 0.3806228373702422,
+  "paths": {
+    "final_best_pt": "runs\\final_model_v3\\final_best.pt",
+    "final_last_pt": "runs\\final_model_v3\\final_last.pt"
+  }
+}

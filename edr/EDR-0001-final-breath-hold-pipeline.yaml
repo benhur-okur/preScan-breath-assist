@@ -1,0 +1,171 @@
+edr:
+  id: EDR-0001
+  title: "Finalize breath-hold detection pipeline for offline MP4 inference"
+  status: "accepted"
+  date: "2025-12-27"
+  owners:
+    - "Benhur Rahman Okur"
+  project:
+    name: "preScan-breath-assist"
+    domain: "breath-hold temporal detection (front-view video)"
+    scope:
+      - "offline mp4 inference"
+      - "segment extraction (start/end + duration)"
+      - "academic/engineering defensibility on small dataset"
+  context:
+    goal:
+      - "Detect breath-hold events in time, not just frame/window classification."
+      - "Answer: when hold starts, how long it lasts, and whether it is meaningful."
+    dataset:
+      videos_total: 24
+      subjects_total: 6
+      case_types:
+        - "normal"
+        - "inhale_hold"
+        - "exhale_hold"
+        - "irregular"
+      key_constraint: "Small dataset; generalization prioritized via LOSO evaluation."
+    problem_characteristics:
+      - "Temporal phenomenon with low-motion periods; frame-level cues are weak."
+      - "Raw thresholding produces short spikes -> false positives."
+      - "Inter-subject micro-movement variability."
+    pipeline_summary:
+      - "Video -> sliding windows (T=15) -> temporal CNN -> window probability"
+      - "Thresholding -> postprocess (min hold duration) -> segments"
+      - "Outputs: predictions.csv, segments.csv, probability plot"
+
+  decision:
+    final_configuration:
+      model:
+        name: "MobileNetV3Temporal"
+        version: "v4"
+        temporal_window_frames: 15
+        pooling: "max"
+      input:
+        mode: "rgb"
+        rationale: "More stable across cases; better inhale/exhale separation than diff."
+      inference:
+        stride_frames: 5
+        threshold:
+          value: 0.90
+          rationale: "Lower thresholds produced false positives in normal cases; 0.90 preserves meaningful segments."
+      postprocessing:
+        min_hold_sec: 2.0
+        interpretation: "Reject short spikes; enforce meaningful temporal continuity."
+        conversion_note: "min_hold_sec converted to minimum consecutive windows based on fps/stride."
+      outputs:
+        files:
+          - "predictions.csv"
+          - "segments.csv"
+          - "probability_plot.png"
+        definitions:
+          predictions_csv:
+            columns:
+              - "prob_hold"
+              - "pred_hold_raw"
+              - "pred_hold"
+          segments_csv:
+            content: "Meaningful hold segments (start/end frames, durations)"
+    scope_of_validity:
+      included:
+        - "offline mp4 analysis"
+        - "single front-view camera, fixed resolution assumption"
+        - "cases: normal/inhale_hold/exhale_hold/irregular"
+      excluded:
+        - "real-time camera streaming (planned future work)"
+        - "automated clinical-grade validation"
+
+  rationale:
+    why_this_is_final:
+      - "No false positives observed in tested normal videos under chosen threshold+postprocess."
+      - "Hold segments are not missed in tested hold cases; durations are meaningful."
+      - "Segment-level behavior is stable and aligns with project goal (events over time)."
+    key_learnings_that_informed_decision:
+      - "Window-level F1 alone is insufficient; segment-level quality is primary metric."
+      - "Manifest stride_frames column is not used by dataset; effective stride comes from start_frame diffs."
+      - "Video-level leakage must be prevented; LOSO/debug uncovered fake success patterns."
+
+  alternatives_considered:
+    - option: "diff input mode"
+      outcome: "Rejected"
+      reason:
+        - "Failed on exhale_hold and unstable on irregular."
+        - "Movement-only cue insufficient; misses subtle patterns."
+    - option: "lower threshold (<0.90)"
+      outcome: "Rejected"
+      reason:
+        - "Introduced false positives in normal cases (short spikes become segments)."
+    - option: "higher threshold (>0.90)"
+      outcome: "Not selected"
+      reason:
+        - "Did not improve segment quality materially; risk of missing true holds in edge cases."
+    - option: "tune solely by window-level metrics"
+      outcome: "Rejected"
+      reason:
+        - "Produced visually/clinically nonsensical segment behavior despite good F1."
+
+  consequences:
+    positive:
+      - "Stable offline inference; meaningful segment extraction."
+      - "Reduced false positives via conservative threshold + min duration."
+      - "Defensible engineering narrative (temporal + postprocess)."
+    negative:
+      - "Conservative threshold may miss very weak/short holds."
+      - "Fixed stride may reduce temporal resolution; event boundaries can be coarse."
+      - "Generalization is bounded by small dataset size (6 subjects)."
+    risks:
+      - name: "FPS mismatch"
+        description: "min_hold_sec conversion depends on fps; wrong fps can distort segment filtering."
+        mitigation: "Always read fps from video metadata in inference; log fps into outputs."
+      - name: "Domain shift"
+        description: "Different camera angle/lighting may degrade performance."
+        mitigation: "Add calibration set; expand dataset; consider augmentation."
+      - name: "Boundary jitter"
+        description: "Stride=5 and window=15 can produce start/end offsets."
+        mitigation: "Optional boundary refinement step; report uncertainty."
+
+  validation_evidence:
+    evaluation_method:
+      - "LOSO used during development to detect leakage and understand generalization."
+      - "Final training uses leak-free validation split (video-level)."
+    observed_results_summary:
+      - "Offline inference tested on 4 case types; no false positives observed in normal."
+      - "Hold segments appear meaningful (duration >= 2.0 sec) and aligned with expectations."
+    notes:
+      - "This EDR records engineering acceptance; it does not claim clinical validity."
+
+  implementation_notes:
+    commands:
+      predict_video_final_example:
+        description: "Final preset inference command (PowerShell-safe formatting handled separately)."
+        parameters:
+          input_mode: "rgb"
+          pooling: "max"
+          threshold: 0.90
+          min_hold_sec: 2.0
+          stride_frames: 5
+    data_handling:
+      manifest_stride_warning:
+        statement: "stride_frames column in manifest is not consumed by dataset loader."
+        operational_rule: "Effective training stride is determined by start_frame differences."
+      compatibility_rule:
+        statement: "Inference windowing should be compatible with what the model saw in training."
+
+  follow_ups:
+    planned:
+      - id: "FUP-0001"
+        title: "Single-command demo runner"
+        description: "Script to run predict_video + outputs + plots for a given mp4/manifest."
+        priority: "medium"
+      - id: "FUP-0002"
+        title: "Config pinning via YAML"
+        description: "Central config file to prevent drift across scripts."
+        priority: "high"
+      - id: "FUP-0003"
+        title: "Segment-level metric report"
+        description: "Automated report: segment precision/recall, boundary error, duration stats."
+        priority: "medium"
+      - id: "FUP-0004"
+        title: "Real-time architecture prototype"
+        description: "Ring buffer of 15 frames; inference every 5 frames; live overlay."
+        priority: "optional"

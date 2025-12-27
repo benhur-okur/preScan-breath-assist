@@ -133,3 +133,87 @@ video duration / total frames (frame taşması riskini azaltmak için)
 
 ### PyThorch 
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+
+
+ python -m tools.predict_video `
+>>   --manifest-csv runs\video_demo\manifest_one_video.csv `                                                                                                                        
+>>   --pooling max `                                                                                                                                                                
+>>   --ckpt-dir runs\loso_max_diff_final `                                                                                                                                          
+>>   --threshold 0.35 `                                                                                                                                                             
+>>   --min-hold-sec 1.0 `                                                                                                                                                           
+>>   --out-dir runs\video_demo/preds_thr035_min1s `                                                                                                                                 
+>>   --plot                                                            
+
+python -c "import pandas as pd; df=pd.read_csv('runs/video_demo/pred_thr_042/predictions.csv'); print('thr=0.42 hold_windows=',(df.pred_hold==1).sum());"
+
+runs\loso_max_diff_final\fold_01_fold_1_test_benhur\best.pt `
+
+python -m tools.make_windows_for_video `
+  --video "data\raw\Videos/Benhur/benhur_2_front.mp4" `
+  --out-csv "runs\video_demo\manifest_hold_video.csv" `
+  --window-frames 15 `
+  --stride-frames 5
+
+
+Yani predict komutunu standardize et:
+
+python -m tools.predict_video `
+  --manifest-csv "runs\video_demo\manifest_one_video.csv" `
+  --ckpt-dir "runs\loso_max_diff_final" `
+  --pooling max `
+  --threshold 0.25 `
+  --min-hold-sec 1.0 `
+  --out-dir "runs\video_demo\preds_thr025_min1s" `
+  --plot
+
+
+python -m tools.choose_global_threshold `
+  --manifest-final data\windows\manifest_final_train.csv `
+  --final-fold-id final `
+  --ckpt runs\final_model\final_best.pt `
+  --split val `
+  --pooling max `
+  --out runs\final_model\final_threshold.json
+
+
+python -m tools.make_windows_for_video `
+  --video "data\raw\Videos/Ecenaz/ecenaz_3_front.mp4" `
+  --out-csv "runs\final_demo\ecenaz_exhale_hold_manifest.csv" `
+  --window-frames 15 `
+  --stride-frames 5
+
+
+python -m tools.predict_video `
+  --manifest-csv runs/final_demo/ecenaz_exhale_hold_manifest.csv `
+  --ckpt "runs/final_model_v4_rgb_bce/final_best.pt" `
+  --pooling max `
+  --input-mode rgb `
+  --threshold 0.90 `
+  --min-hold-sec 2.0 `
+  --out-dir runs/final_demo/v4_ecenaz_exhale_hold_thr090_min2s `
+  --plot
+
+python -m tools.make_windows_for_video `
+  --video "data\raw\Videos/Doga/doga_2_front.mp4" `
+  --window-frames 15 `
+  --stride-frames 5 `
+  --out-csv "data/windows/manifest_infer_doga_2.csv" `
+  --fold-id "inference" `
+  --split "test"
+
+python -m tools.eval_single_video_from_manifest `
+  --manifest "data/windows/manifest_final_train_v3.csv" `
+  --video "doga" `
+  --ckpt "runs/final_model_v4_rgb_bce/final_best.pt" `
+  --input-mode "rgb" `
+  --threshold 0.90 `
+  --min-consecutive 13 `
+  --plot `
+  --out-dir "runs/debug_doga/train_windows"
+
+python -m tools.compare_windowing_train_vs_infer `
+  --train-manifest "data/windows/manifest_final_train_v3.csv" `
+  --infer-manifest "data/windows/manifest_infer_doga_2.csv" `
+  --video "doga"
+
+

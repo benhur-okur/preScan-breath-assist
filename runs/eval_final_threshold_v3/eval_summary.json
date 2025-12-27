@@ -1,0 +1,15 @@
+{
+  "ckpt": "runs\\final_model_v3\\final_best.pt",
+  "pooling": "max",
+  "input_mode": "diff",
+  "n_val": 1728,
+  "pos_rate_val": 0.22569444444444445,
+  "pr_auc": 0.24837828624523012,
+  "roc_auc": 0.5436357364608486,
+  "best_f1_threshold": 0.55,
+  "best_f1": 0.40634920634920635,
+  "best_f1_precision": 0.256,
+  "best_f1_recall": 0.9846153846153847,
+  "precision_target": 0.9,
+  "threshold_for_precision_target": 0.86
+}
