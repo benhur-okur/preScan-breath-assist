@@ -212,7 +212,7 @@ def main() -> None:
 
     ap.add_argument("--pooling", choices=["mean", "max"], default="max")
     ap.add_argument("--input-mode", choices=["rgb", "diff"], default="diff",
-                    help="MUST match training preprocessing. Final model uses diff.")
+                    help="Input mode MUST match training preprocessing. Check checkpoint final_meta.json.")
 
     ap.add_argument("--ckpt", default=None, help="path to final_best.pt (single model)")
     ap.add_argument("--ckpt-dir", default=None, help="directory containing final_best.pt")

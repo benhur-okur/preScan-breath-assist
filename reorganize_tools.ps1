@@ -6,7 +6,7 @@
 $ErrorActionPreference = "Stop"
 
 # ---- Toggle: if you want a dry-run first, set $DryRun = $true
-$DryRun = $true
+$DryRun = $false
 
 function Ensure-Dir([string]$Path) {
     if (-not (Test-Path $Path)) {
