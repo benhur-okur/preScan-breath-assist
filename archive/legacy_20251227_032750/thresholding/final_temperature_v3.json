@@ -1,0 +1,19 @@
+{
+  "manifest_csv": "data\\windows\\manifest_final_train_v3.csv",
+  "ckpt": "runs\\final_model_v3\\final_best.pt",
+  "fold_id": "final",
+  "pooling": "max",
+  "input_mode": "diff",
+  "device": "cuda",
+  "temperature": 3720.39208984375,
+  "val_metrics": {
+    "n_val": 1728,
+    "pos_rate_true": 0.22569444444444445,
+    "nll_before": 3.376217573347123,
+    "nll_after": 0.6933818847768299,
+    "brier_before": 0.6188033826844227,
+    "brier_after": 0.25011735193673973,
+    "ece_before": 0.6308258297891977,
+    "ece_after": 0.2745666238996718
+  }
+}

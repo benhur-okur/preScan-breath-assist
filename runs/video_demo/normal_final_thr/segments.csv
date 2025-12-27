@@ -1,0 +1,6 @@
+start_window_idx,end_window_idx,start_frame,end_frame_exclusive,length_windows
+10,18,50,105,9
+25,32,125,175,8
+46,71,230,370,26
+74,100,370,515,27
+104,115,520,590,12

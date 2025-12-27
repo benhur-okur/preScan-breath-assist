@@ -61,34 +61,64 @@ def _read_clip_opencv(video_path: str, start_frame: int, window_frames: int) -> 
     return np.stack(frames, axis=0)  # [T,H,W,3]
 
 
+def _to_diff_clip_rgb(clip_rgb: np.ndarray) -> np.ndarray:
+    """
+    clip_rgb: uint8 [T,H,W,3] RGB
+    returns:  uint8 [T,H,W,3] where:
+      diff[t] = |clip[t] - clip[t-1]|
+      diff[0] = 0
+    """
+    T = clip_rgb.shape[0]
+    if T < 2:
+        return np.zeros_like(clip_rgb)
+
+    a = clip_rgb[1:].astype(np.int16)
+    b = clip_rgb[:-1].astype(np.int16)
+    d = np.abs(a - b).astype(np.uint8)  # [T-1,H,W,3]
+    first = np.zeros_like(clip_rgb[:1])  # [1,H,W,3]
+    return np.concatenate([first, d], axis=0)  # [T,H,W,3]
+
+
 class WindowVideoDataset(Dataset):
     """
-    Front-only baseline dataset.
+    Front-only dataset.
 
     LOSO manifest contract (your project):
       - df["fold_id"] is a string key: e.g. "fold_1_test_benhur"
       - df["split"] is one of:
-          "train", "val", OR the same fold key for test rows.
-        i.e. test rows: split == fold_id
+          "train", "val", OR "test" OR the same fold key for test rows.
+        i.e. test rows can be either:
+          split == "test"
+          OR split == fold_id
 
     Each item -> (clip_tensor [T,3,img,img], label float32)
+
+    input_mode:
+      - "rgb": raw RGB frames (ImageNet normalize)
+      - "diff": motion frames: |frame_t - frame_(t-1)| (normalize to [-1,1] via mean=0.5,std=0.5)
     """
     def __init__(
         self,
         manifest_csv: str,
         split: str,
-        fold_id: str,              # <-- IMPORTANT: fold key string
+        fold_id: str,              # fold key string
         root_dir: Optional[str] = None,
         img_size: int = 224,
         train_aug: bool = True,
+        input_mode: str = "rgb",   # <-- NEW
     ):
         if split not in ("train", "val", "test"):
             raise ValueError(f"split must be one of ('train','val','test'), got: {split}")
+
+        input_mode = str(input_mode).lower().strip()
+        if input_mode not in ("rgb", "diff"):
+            raise ValueError(f"input_mode must be one of ('rgb','diff'), got: {input_mode}")
 
         self.manifest_csv = manifest_csv
         self.split = split
         self.fold_key = str(fold_id)
         self.root_dir = root_dir or "."
+        self.input_mode = input_mode
 
         df = pd.read_csv(manifest_csv)
 
@@ -99,15 +129,15 @@ class WindowVideoDataset(Dataset):
         if split in ("train", "val"):
             df = df[df["split"] == split].copy()
         else:
-            # Support BOTH encodings:
-            # 1) split == "test"  (your current manifest_loso.csv)
-            # 2) split == fold_key (optional future encoding)
+            # Support BOTH encodings for test:
+            # 1) split == "test"
+            # 2) split == fold_key
             df = df[(df["split"] == "test") | (df["split"] == self.fold_key)].copy()
 
         if len(df) == 0:
             raise RuntimeError(
-                f"No rows for fold_key={self.fold_key} split={split} in {manifest_csv} "
-                f"(expected test rows: split==fold_key)"
+                f"No rows for fold_key={self.fold_key} split={split} in {manifest_csv}. "
+                f"Expected split in ('train','val') OR for test split == 'test' OR split == fold_key."
             )
 
         self.samples: list[WindowSample] = []
@@ -128,19 +158,26 @@ class WindowVideoDataset(Dataset):
                 )
             )
 
-        # Transforms (minimal, safe)
-        if split == "train" and train_aug:
+        # Transforms
+        # RGB: ImageNet normalize + minimal augmentation
+        # DIFF: do NOT use ImageNet stats; use 0.5/0.5 to map [0,1] -> [-1,1]
+        if self.input_mode == "rgb":
+            mean, std = IMAGENET_MEAN, IMAGENET_STD
+        else:
+            mean, std = (0.5, 0.5, 0.5), (0.5, 0.5, 0.5)
+
+        if split == "train" and train_aug and self.input_mode == "rgb":
             self.transform = transforms.Compose([
                 transforms.Resize((img_size, img_size)),
                 transforms.ColorJitter(brightness=0.10, contrast=0.10),
                 transforms.ToTensor(),
-                transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD),
+                transforms.Normalize(mean, std),
             ])
         else:
             self.transform = transforms.Compose([
                 transforms.Resize((img_size, img_size)),
                 transforms.ToTensor(),
-                transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD),
+                transforms.Normalize(mean, std),
             ])
 
     def __len__(self) -> int:
@@ -155,6 +192,9 @@ class WindowVideoDataset(Dataset):
             window_frames=s.window_frames,
         )  # [T,H,W,3] uint8 RGB
 
+        if self.input_mode == "diff":
+            clip = _to_diff_clip_rgb(clip)
+
         frames_t = []
         for t in range(clip.shape[0]):
             pil = Image.fromarray(clip[t])
@@ -162,5 +202,4 @@ class WindowVideoDataset(Dataset):
 
         clip_t = torch.stack(frames_t, dim=0)  # [T,3,H,W]
         y = torch.tensor(float(s.label), dtype=torch.float32)
-
         return clip_t, y
