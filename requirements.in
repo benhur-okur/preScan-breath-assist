@@ -17,3 +17,8 @@ decorator<5
 
 # Training / ML (Part 2)
 scikit-learn>=1.4,<2.0
+
+torch
+torchvision
+torchaudio
+scikit-learn

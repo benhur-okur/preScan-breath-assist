@@ -236,8 +236,11 @@ pip install -r requirements.txt
 ## 12.1 Generate Windows
 
 python -m tools.core.make_windows_for_video \
-  --video path/to/video.mp4 \
-  --out-csv data/windows/sample_manifest.csv
+  --video "path/to/video" \
+  --out-csv "runs/final_demo/manifest.csv" \
+  --window-frames 15 \
+  --stride-frames 5
+
 
 ## 12.2 Run Final Inference
 
