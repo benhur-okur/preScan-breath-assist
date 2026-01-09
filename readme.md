@@ -171,6 +171,9 @@ preScan-breath-assist/
 │
 ├─ src/ # Model, dataset, utilities
 │
+├─  app/ # Offline Streamlit Web UI
+│ └─ streamlit_app.py
+│
 ├─ data/
 │ └─ windows/ # Window manifests (.csv)
 │
@@ -253,6 +256,18 @@ python -m tools.core.predict_video \
   --min-hold-sec 2.0 \
   --out-dir runs/final_demo/v4_exhale_thr090_min2s \
   --plot
+
+## 12.3 Offline Web App (Interactive Demo)
+For easier demonstration and parameter tuning, an offline **Streamlit** dashboard is included. This UI wraps the core pipeline and allows you to upload videos, adjust thresholds dynamically, and visualize results instantly.
+
+**To launch the app:**
+
+streamlit run app/streamlit_app.py
+
+**Features:**
+- **Interactive Tuning:** Adjust `threshold` and `min_hold_sec` sliders to see how sensitivity changes.
+- **Visual Feedback:** View the probability plot synchronized with the uploaded video preview.
+- **Pipeline Integration:** Automatically runs `make_windows` and `predict_video` in the background.
 
 # 13. Reproducibility
 All training parameters are saved in final_meta.json
