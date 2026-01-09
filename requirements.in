@@ -22,3 +22,7 @@ torch
 torchvision
 torchaudio
 scikit-learn
+
+# Demo UI
+streamlit>=1.35,<2.0
+
